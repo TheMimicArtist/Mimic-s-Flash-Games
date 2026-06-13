@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mimic's Flash Games</title>
+    <style>
+        body { margin: 0; background: #111; color: #0f0; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #container { margin: 20px auto; border: 4px solid #0f0; max-width: 900px; background: #000; }
+        h1 { color: #0ff; }
+        button { padding: 15px 40px; font-size: 22px; margin: 10px; }
+        p { color: #aaa; }
+    </style>
+</head>
+<body>
+    <h1>🕹️ Mimic's Flash Games</h1>
+    <p>Private retro collection for the server 💋</p>
+    
+    <button onclick="loadGame()">▶ Launch Game</button>
+    <button onclick="toggleFullscreen()" id="fsBtn" style="display:none;">⛶ Fullscreen</button>
+
+    <div id="container"></div>
+
+    <script src="ruffle-0.2.0-web-selfhosted/ruffle.js"></script>
+    <script>
+        let currentPlayer = null;
+
+        async function loadGame() {
+            const container = document.getElementById('container');
+            container.innerHTML = '<p style="color:yellow;">Loading game.swf...</p>';
+
+            const ruffle = window.RufflePlayer.newest();
+            const player = ruffle.createPlayer();
+            
+            player.style.width = "800px";
+            player.style.height = "600px";
+
+            container.innerHTML = '';
+            container.appendChild(player);
+            currentPlayer = player;
+
+            document.getElementById('fsBtn').style.display = 'inline-block';
+
+            try {
+                await player.load({ url: "game.swf" });
+            } catch (e) {
+                container.innerHTML = '<p style="color:red;">Error loading game.</p>';
+            }
+        }
+
+        function toggleFullscreen() {
+            if (currentPlayer) currentPlayer.enterFullscreen();
+        }
+    </script>
+</body>
+</html>
