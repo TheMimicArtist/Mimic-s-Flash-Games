@@ -28,7 +28,6 @@
         p { 
             color: #aaa; 
         }
-        /* Dropdown Menu Styling */
         .selector-container {
             margin: 20px auto;
         }
@@ -68,39 +67,37 @@
     <h1>🕹️ Mimic's Flash Games</h1>
     <p>Private retro collection for the server 💋</p>
     
-    <!-- 1. THE DROPDOWN MENU -->
     <div class="selector-container">
         <label for="game-select">Choose a Game:</label>
-        <select id="game-select" onchange="updateSelectedGame()">
-            <!-- FUTURE STEP: Just add new games to this list below! -->
-            <option value="game.swf">Default Game</option>
+        <select id="game-select" onchange="loadGame()">
+            <option value="" disabled selected>Select a game to play...</option>
             <option value="milf_quest.swf">Milf Quest</option>
             <option value="Banned_From_Equestria.swf">Banned From Equestria</option>
         </select>
     </div>
 
-    <h3 id="game-title" style="color: yellow; min-height: 24px;">Ready to play: DEFAULT GAME</h3>
+    <h3 id="game-title" style="color: yellow; min-height: 24px;"></h3>
     
-    <button onclick="loadGame()">▶ Launch Game</button>
     <button onclick="toggleFullscreen()" id="fsBtn" style="display:none;">⛶ Fullscreen</button>
 
     <div id="container">
-        <p style="color: #555;">Click "Launch Game" to start the arcade console</p>
+        <p id="placeholder-text" style="color: #555;">Select an arcade cartridge above to begin loading</p>
     </div>
 
     <script src="ruffle-0.2.0-web-selfhosted/ruffle.js"></script>
     <script>
         let currentPlayer = null;
-        let selectedGame = document.getElementById('game-select').value;
-
-        // Updates the text display when you click a different option in the dropdown
-        function updateSelectedGame() {
-            selectedGame = document.getElementById('game-select').value;
-            const cleanTitle = selectedGame.replace('.swf', '').replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
-            document.getElementById('game-title').innerText = `Ready to play: ${cleanTitle}`;
-        }
 
         async function loadGame() {
+            const selectMenu = document.getElementById('game-select');
+            const selectedGame = selectMenu.value;
+            
+            if (!selectedGame) return; // Do nothing if blank placeholder is hit
+
+            // Dynamically set the header title
+            const cleanTitle = selectedGame.replace('.swf', '').replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
+            document.getElementById('game-title').innerText = `NOW PLAYING: ${cleanTitle}`;
+
             const container = document.getElementById('container');
             container.innerHTML = `<p style="color:yellow;">Loading ${selectedGame}...</p>`;
 
@@ -119,7 +116,7 @@
             try {
                 await player.load({ url: selectedGame });
             } catch (e) {
-                container.innerHTML = `<p style="color:red;">Error loading ${selectedGame}. Verify file name casing and make sure it's pushed to GitHub!</p>`;
+                container.innerHTML = `<p style="color:red;">Error loading ${selectedGame}. Verify filename casing and make sure it's pushed to GitHub!</p>`;
             }
         }
 
