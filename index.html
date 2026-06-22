@@ -2,127 +2,120 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mimic's Flash Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimic's Flash Arcade</title>
     <style>
-        body { 
-            margin: 0; 
-            background: #111; 
-            color: #0f0; 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-        }
-        #container { 
-            margin: 20px auto; 
-            border: 4px solid #0f0; 
-            max-width: 900px; 
-            background: #000; 
-            min-height: 600px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
         }
-        h1 { 
-            color: #0ff; 
+
+        h1 {
+            color: #ff4a4a;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        p { 
-            color: #aaa; 
+
+        .controls {
+            margin-bottom: 20px;
+            background: #2a2a2a;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        .selector-container {
-            margin: 20px auto;
-        }
+
         label {
-            color: #fff;
-            font-size: 18px;
+            font-weight: bold;
             margin-right: 10px;
         }
+
         select {
-            padding: 10px 20px;
-            font-size: 18px;
-            background: #222;
-            color: #0ff;
-            border: 2px solid #0ff;
+            padding: 8px 12px;
+            font-size: 16px;
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #ff4a4a;
+            border-radius: 4px;
             cursor: pointer;
-            border-radius: 5px;
-        }
-        select:focus {
             outline: none;
         }
-        button { 
-            padding: 12px 30px; 
-            font-size: 18px; 
-            margin: 10px; 
-            background: #222; 
-            color: #0ff; 
-            border: 2px solid #0ff; 
-            cursor: pointer; 
+
+        select:focus {
+            box-shadow: 0 0 8px #ff4a4a;
         }
-        button:hover { 
-            background: #0ff; 
-            color: #000; 
+
+        #arcade-container {
+            width: 800px;
+            height: 600px;
+            background-color: #000;
+            border: 4px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Styling for the Ruffle Flash Object wrapper */
+        ruffle-player {
+            width: 100%;
+            height: 100%;
         }
     </style>
+    <!-- Loads the standalone Ruffle emulator engine -->
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
 </head>
 <body>
-    <h1>🕹️ Mimic's Flash Games</h1>
-    <p>Private retro collection for the server 💋</p>
-    
-    <div class="selector-container">
-        <label for="game-select">Choose a Game:</label>
-        <select id="game-select" onchange="loadGame()">
-            <option value="" disabled selected>Select a game to play...</option>
-            <option value="milf_quest.swf">Milf Quest</option>
+
+    <h1>🕹️ Mimic's Flash Arcade</h1>
+
+    <div class="controls">
+        <label for="gameSelect">Choose a Game:</label>
+        <select id="gameSelect" onchange="loadGame(this.value)">
+            <option value="">-- Select a Game --</option>
+            <!-- START GAMES DROPDOWN -->
+            <option value="AppleQuest.swf">Applequest</option>
             <option value="Banned_From_Equestria.swf">Banned From Equestria</option>
+            <option value="milf_quest.swf">Milf Quest</option>
+        <!-- END GAMES DROPDOWN -->
         </select>
     </div>
 
-    <h3 id="game-title" style="color: yellow; min-height: 24px;"></h3>
-    
-    <button onclick="toggleFullscreen()" id="fsBtn" style="display:none;">⛶ Fullscreen</button>
-
-    <div id="container">
-        <p id="placeholder-text" style="color: #555;">Select an arcade cartridge above to begin loading</p>
+    <div id="arcade-container">
+        <!-- Ruffle player gets inserted dynamically right here -->
     </div>
 
-    <script src="ruffle-0.2.0-web-selfhosted/ruffle.js"></script>
     <script>
-        let currentPlayer = null;
+        const ruffle = window.RufflePlayer.newest();
+        const container = document.getElementById("arcade-container");
+        let player = null;
 
-        async function loadGame() {
-            const selectMenu = document.getElementById('game-select');
-            const selectedGame = selectMenu.value;
-            
-            if (!selectedGame) return; // Do nothing if blank placeholder is hit
-
-            // Dynamically set the header title
-            const cleanTitle = selectedGame.replace('.swf', '').replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
-            document.getElementById('game-title').innerText = `NOW PLAYING: ${cleanTitle}`;
-
-            const container = document.getElementById('container');
-            container.innerHTML = `<p style="color:yellow;">Loading ${selectedGame}...</p>`;
-
-            const ruffle = window.RufflePlayer.newest();
-            const player = ruffle.createPlayer();
-            
-            player.style.width = "800px";
-            player.style.height = "600px";
-
-            container.innerHTML = '';
-            container.appendChild(player);
-            currentPlayer = player;
-
-            document.getElementById('fsBtn').style.display = 'inline-block';
-
-            try {
-                await player.load({ url: selectedGame });
-            } catch (e) {
-                container.innerHTML = `<p style="color:red;">Error loading ${selectedGame}. Verify filename casing and make sure it's pushed to GitHub!</p>`;
+        function loadGame(swfFile) {
+            // Clear the player canvas if no game is selected
+            if (!swfFile) {
+                container.innerHTML = '';
+                return;
             }
-        }
 
-        function toggleFullscreen() {
-            if (currentPlayer) currentPlayer.enterFullscreen();
+            // Wipe out the old game instance before loading a new one
+            container.innerHTML = '';
+            
+            // Create a fresh instance of the emulator player
+            player = ruffle.createPlayer();
+            container.appendChild(player);
+
+            // Fire up the local .swf file
+            player.load({
+                url: swfFile,
+                allowScriptAccess: false
+            });
         }
     </script>
+
 </body>
 </html>
