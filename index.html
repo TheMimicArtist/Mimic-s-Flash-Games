@@ -4,16 +4,47 @@
     <meta charset="UTF-8">
     <title>Mimic's Flash Games</title>
     <style>
-        body { margin: 0; background: #111; color: #0f0; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #container { margin: 20px auto; border: 4px solid #0f0; max-width: 900px; background: #000; }
-        h1 { color: #0ff; }
-        button { padding: 15px 40px; font-size: 22px; margin: 10px; }
-        p { color: #aaa; }
+        body { 
+            margin: 0; 
+            background: #111; 
+            color: #0f0; 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+        }
+        #container { 
+            margin: 20px auto; 
+            border: 4px solid #0f0; 
+            max-width: 900px; 
+            background: #000; 
+        }
+        h1 { 
+            color: #0ff; 
+        }
+        button { 
+            padding: 15px 40px; 
+            font-size: 22px; 
+            margin: 10px; 
+            background: #222; 
+            color: #0ff; 
+            border: 2px solid #0ff; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #0ff; 
+            color: #000; 
+        }
+        p { 
+            color: #aaa; 
+        }
     </style>
 </head>
 <body>
     <h1>🕹️ Mimic's Flash Games</h1>
     <p>Private retro collection for the server 💋</p>
+    
+    <!-- Dynamically displays the game title based on the URL parameter -->
+    <h3 id="game-title" style="color: yellow; min-height: 24px;"></h3>
     
     <button onclick="loadGame()">▶ Launch Game</button>
     <button onclick="toggleFullscreen()" id="fsBtn" style="display:none;">⛶ Fullscreen</button>
@@ -24,9 +55,17 @@
     <script>
         let currentPlayer = null;
 
+        // 1. Look at the browser's URL bar to grab "?game=filename.swf"
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameFile = urlParams.get('game') || 'game.swf'; // Defaults to game.swf if empty
+
+        // 2. Format the filename beautifully to display as a heading on screen
+        const cleanTitle = gameFile.replace('.swf', '').replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
+        document.getElementById('game-title').innerText = `Ready to play: ${cleanTitle}`;
+
         async function loadGame() {
             const container = document.getElementById('container');
-            container.innerHTML = '<p style="color:yellow;">Loading game.swf...</p>';
+            container.innerHTML = `<p style="color:yellow;">Loading ${gameFile}...</p>`;
 
             const ruffle = window.RufflePlayer.newest();
             const player = ruffle.createPlayer();
@@ -41,12 +80,14 @@
             document.getElementById('fsBtn').style.display = 'inline-block';
 
             try {
-                await player.load({ url: "game.swf" });
+                // 3. Load the dynamic URL variable instead of a hardcoded string
+                await player.load({ url: gameFile });
             } catch (e) {
-                container.innerHTML = '<p style="color:red;">Error loading game.</p>';
+                container.innerHTML = `<p style="color:red;">Error loading ${gameFile}. Verify the filename spelling/casing and ensure it is pushed to GitHub!</p>`;
             }
         }
 
+        // Handles Ruffle built-in fullscreen functionality
         function toggleFullscreen() {
             if (currentPlayer) currentPlayer.enterFullscreen();
         }
