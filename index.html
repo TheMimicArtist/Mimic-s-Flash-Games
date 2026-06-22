@@ -17,13 +17,41 @@
             border: 4px solid #0f0; 
             max-width: 900px; 
             background: #000; 
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         h1 { 
             color: #0ff; 
         }
+        p { 
+            color: #aaa; 
+        }
+        /* Dropdown Menu Styling */
+        .selector-container {
+            margin: 20px auto;
+        }
+        label {
+            color: #fff;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        select {
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #222;
+            color: #0ff;
+            border: 2px solid #0ff;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        select:focus {
+            outline: none;
+        }
         button { 
-            padding: 15px 40px; 
-            font-size: 22px; 
+            padding: 12px 30px; 
+            font-size: 18px; 
             margin: 10px; 
             background: #222; 
             color: #0ff; 
@@ -34,37 +62,47 @@
             background: #0ff; 
             color: #000; 
         }
-        p { 
-            color: #aaa; 
-        }
     </style>
 </head>
 <body>
     <h1>🕹️ Mimic's Flash Games</h1>
     <p>Private retro collection for the server 💋</p>
     
-    <h3 id="game-title" style="color: yellow; min-height: 24px;"></h3>
+    <!-- 1. THE DROPDOWN MENU -->
+    <div class="selector-container">
+        <label for="game-select">Choose a Game:</label>
+        <select id="game-select" onchange="updateSelectedGame()">
+            <!-- FUTURE STEP: Just add new games to this list below! -->
+            <option value="game.swf">Default Game</option>
+            <option value="milf_quest.swf">Milf Quest</option>
+            <option value="Banned_From_Equestria.swf">Banned From Equestria</option>
+        </select>
+    </div>
+
+    <h3 id="game-title" style="color: yellow; min-height: 24px;">Ready to play: DEFAULT GAME</h3>
     
     <button onclick="loadGame()">▶ Launch Game</button>
     <button onclick="toggleFullscreen()" id="fsBtn" style="display:none;">⛶ Fullscreen</button>
 
-    <div id="container"></div>
+    <div id="container">
+        <p style="color: #555;">Click "Launch Game" to start the arcade console</p>
+    </div>
 
     <script src="ruffle-0.2.0-web-selfhosted/ruffle.js"></script>
     <script>
         let currentPlayer = null;
+        let selectedGame = document.getElementById('game-select').value;
 
-        // 1. Look at the browser's URL bar to grab "?game=filename.swf"
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameFile = urlParams.get('game') || 'game.swf'; // Defaults to game.swf if empty
-
-        // 2. Format the filename beautifully to display as a heading on screen
-        const cleanTitle = gameFile.replace('.swf', '').replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
-        document.getElementById('game-title').innerText = `Ready to play: ${cleanTitle}`;
+        // Updates the text display when you click a different option in the dropdown
+        function updateSelectedGame() {
+            selectedGame = document.getElementById('game-select').value;
+            const cleanTitle = selectedGame.replace('.swf', '').replace(/_/g, ' ').replace(/-/g, ' ').toUpperCase();
+            document.getElementById('game-title').innerText = `Ready to play: ${cleanTitle}`;
+        }
 
         async function loadGame() {
             const container = document.getElementById('container');
-            container.innerHTML = `<p style="color:yellow;">Loading ${gameFile}...</p>`;
+            container.innerHTML = `<p style="color:yellow;">Loading ${selectedGame}...</p>`;
 
             const ruffle = window.RufflePlayer.newest();
             const player = ruffle.createPlayer();
@@ -79,14 +117,12 @@
             document.getElementById('fsBtn').style.display = 'inline-block';
 
             try {
-                // 3. Load the dynamic URL variable instead of a hardcoded string
-                await player.load({ url: gameFile });
+                await player.load({ url: selectedGame });
             } catch (e) {
-                container.innerHTML = `<p style="color:red;">Error loading ${gameFile}. Verify the filename spelling/casing and ensure it is pushed to GitHub!</p>`;
+                container.innerHTML = `<p style="color:red;">Error loading ${selectedGame}. Verify file name casing and make sure it's pushed to GitHub!</p>`;
             }
         }
 
-        // Handles Ruffle built-in fullscreen functionality
         function toggleFullscreen() {
             if (currentPlayer) currentPlayer.enterFullscreen();
         }
